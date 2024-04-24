@@ -1,0 +1,79 @@
+﻿@model List<BinhLuan>
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> _userManager
+@{
+    ViewData["Title"] = "DanhGia";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    BaiHat? baiHat = (BaiHat)@ViewBag.BaiHat; 
+    
+}
+<h1 style="text-align:center">Danh sách bình luận</h1>
+
+
+<style>
+    .pagination-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+    }
+</style>
+<h2>Thêm Bình Luận</h2>
+<form asp-area="Admin" asp-action="AddDanhGia" asp-controller="BaiHats" method="post">
+    <div class="form-group">
+        <label class="control-label">Nội dung:</label>
+        <textarea name="noiDung" class="form-control" rows="3"></textarea>
+        <span class="text-danger"></span>
+    </div>
+    @if (baiHat != null)
+    {
+        <input type="hidden" name="idbh" value="@baiHat.Id" />
+    }
+
+    <div class="form-group">
+        <input type="submit" value="Gửi Bình Luận" class="btn btn-primary" />
+    </div>
+</form>
+
+<div class="comment-section">
+    <ul>
+        @foreach (var binhLuan in Model)
+        {
+            <div class="container mt-3" style="border: 2px solid #ccc;border-radius: 10px; padding-bottom: 10px;" >
+                <div class="row" >
+                    <div class="comment-author">
+                        @{
+                            ApplicationUser user = await _userManager.FindByIdAsync(binhLuan.UserID);
+                        }
+                        <i class="bi bi-person me-1" style="margin-right: 10px"></i>@user.UserName
+  
+                    </div>
+                    <div class="comment-content">
+                         @binhLuan.NoiDung
+                    </div>
+                    <div class="comment-date">
+                        @binhLuan.NgayTao.ToString("dd/MM/yyyy HH:mm")
+                    </div>
+                    <div >
+                        <a asp-area="Admin" asp-controller="BaiHats" asp-action="XoaDanhGia" asp-route-idBL="@binhLuan.Id" asp-route-idBH="@baiHat.Id">Xóa bình luận</a>
+                    </div>
+                </div>
+             </div>
+        }
+    </ul>
+</div>
+<div>
+    <div class="pagination-container">
+        <nav aria-label="Page navigation">
+            <ul class="pagination">
+                @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                {
+                    <li class="page-item @(i == ViewBag.PageNumber  ? "active" : "")">
+                        <a class="page-link" href="@Url.Action("DanhGia", new {idBH =baiHat.Id, pageNumber = i })">@i</a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    </div>
+</div>
+
+

@@ -1,0 +1,87 @@
+﻿@inject Web_Context _context;
+@{
+    List<TL_Nhac> tl_nhacs = _context.TL_Nhac.ToList();
+    List<NgheSi> artists = _context.NgheSi.ToList();
+    List<BaiHat> baiHat = _context.BaiHat.ToList();
+    Random random = new Random();
+    BienStatic.Index = random.Next(baiHat.Count);
+    BaiHat randomBaiHat = baiHat[BienStatic.Index];
+
+}
+
+@{
+    ViewData["Title"] = "Home Page";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="recommend">
+    <div class="left">
+        <h2>BẠN CÓ THỂ THỬ</h2>
+        <div class="info">
+            <h1>@randomBaiHat.Name</h1>
+            <h3>
+                @{
+                    List<BaiHat_NgheSi> baiHat_NgheSi = _context.BaiHat_NgheSi.Where(p => p.BaiHatID == randomBaiHat.Id).ToList();
+                }
+                @foreach (BaiHat_NgheSi item in baiHat_NgheSi)
+                {
+                    NgheSi ngheSi = _context.NgheSi.Find(item.NgheSiID);
+                    <a asp-controller="NgheSis" asp-action="Details" asp-route-id="@ngheSi.Id">@ngheSi.Name</a>
+                    if (baiHat_NgheSi.Count() != 1)
+                    {
+                        var lastItem = baiHat_NgheSi[baiHat_NgheSi.Count - 1];
+                        if (item.NgheSiID != lastItem.NgheSiID)
+                        {
+                            <a>, </a>
+                        }
+                    }
+                }
+            </h3>
+            <div class="buttons">
+                <img src="~/images/Icons/Play.png" alt="">
+                <a class="text-black" asp-controller="BaiHats" asp-action="Details" asp-route-id="@randomBaiHat.Id">
+                    PLAY
+                </a>
+            </div>
+        </div>
+    </div>
+    <img src="@randomBaiHat.imageFile" alt="">
+</div>
+<div class="content">
+    <div class="category">
+        <div class="header">
+            <p>THỂ LOẠI</p>
+            <a asp-area="Admin" asp-controller="BaiHats" asp-action="ViewTheLoai" >See all</a>
+        </div>
+        <div class="items">
+            @foreach (var item in tl_nhacs.Take(6))
+            {
+                <a asp-area="Admin" asp-controller="BaiHats" asp-action="DetailsTheLoai" asp-route-id="@item.ID">
+                    <div class="item">
+                        <img src="@item.imageFile">
+                        <p>@Html.DisplayFor(modelItem => item.Name)</p>
+                    </div>
+                </a>
+            }
+        </div>
+    </div>
+    <div class="artist-list">
+        <div class="header">
+            <p>NGHỆ SĨ</p>
+            <a asp-area="Admin" asp-controller="NgheSis" asp-action="Index">See all</a>
+        </div>
+
+        <div class="items">
+            @foreach (var item in artists.Take(6))
+            {
+                <a asp-area ="Admin" asp-controller="NgheSis" asp-action="Details" asp-route-id="@item.Id">
+                    <div class="item">
+                        <img src="@item.imageFile">
+                        <p>@Html.DisplayFor(modelItem => item.Name)</p>
+                    </div>
+                </a>
+            }
+        </div>
+
+    </div>
+</div>

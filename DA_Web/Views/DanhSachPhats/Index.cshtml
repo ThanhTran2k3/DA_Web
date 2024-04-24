@@ -1,0 +1,95 @@
+﻿@model IEnumerable<DA_Web.Models.DanhSachPhat>
+
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<style>
+    a {
+        color: black;
+        text-decoration: none;
+    }
+
+        a:hover {
+            color: black;
+            text-decoration: none;
+        }
+
+    .pagination-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+    }
+</style>
+
+
+<h1 style="text-align:center">Playlist</h1>
+<p>
+    <a class="btn btn-success text-light" asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Name)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.SoLuong)
+            </th>
+            <th>
+
+            </th>
+            
+            
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                <a asp-action="Details" asp-route-id="@item.ID">
+
+                    @Html.DisplayFor(modelItem => item.Name)
+                </a> 
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.SoLuong)
+            </td>   
+            <td>
+                <div class="dropdown-container">
+                    <button class="btn btn-secondary " type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                        ⋮
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li class="dropdown-item">
+                            <a asp-action="Edit" asp-route-id="@item.ID">Edit</a>
+                        </li>
+                        <li class="dropdown-item">
+                            <a asp-action="Delete" asp-route-id="@item.ID">Delete</a>
+                        </li>
+
+                    </ul>
+                </div>
+
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
+    <div class="pagination-container">
+        <nav aria-label="Page navigation">
+            <ul class="pagination">
+                @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                {
+                    <li class="page-item @(i == ViewBag.PageNumber  ? "active" : "")">
+
+                        <a class="page-link" href="@Url.Action("Index", new { pageNumber = i })">@i</a>
+
+                    </li>
+                }
+            </ul>
+        </nav>
+    </div>
+<div class="playNow"></div>

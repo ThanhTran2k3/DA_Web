@@ -1,0 +1,380 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject Web_Context _context;
+@{
+    List<BaiHat> nhacs = _context.BaiHat.ToList();
+}
+
+
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+@{
+    var isAdmin = User.IsInRole("Admin");
+    List<TL_Nhac> tl_nhacs = _context.TL_Nhac.ToList();
+    List<BaiHat> baiHat = _context.BaiHat.ToList();
+    BaiHat randomBaiHat = baiHat[BienStatic.Index];
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - DA_Web</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" integrity="sha512-HK5fgLBL+xu6dm/Ii3z4xhlSUyZgTT9tuc/hSrtw6uzJOvgRr2a9jyxxT1ely+B+xFAmJKVSTbpM/CuL7qxO8w==" crossorigin="anonymous" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/DA_Web.styles.css" asp-append-version="true" />
+    <style>
+        #search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            background-color: white;
+            border: 1px solid #ccc;
+            display: none;
+        }
+
+        .suggestion {
+            padding: 10px;
+            cursor: pointer;
+        }
+
+            .suggestion:hover {
+                background-color: #f4f4f4;
+            }
+    </style>
+</head>
+<body>
+    <div class="containers">
+        <aside class="sidebars">
+            <div class="logo">
+                <a asp-area="" asp-controller="Home" asp-action="Index">
+                    <img src="~/images/Icons/Logo.png" alt="">
+                </a>
+            </div>
+            <div class="menus">
+                <p>Menu</p>
+                @if (!isAdmin)
+                {
+                    <ul>
+                        <li>
+                            <img class="icons" src="~/images/Icons/Home.png" alt="">
+                            <a asp-area="" asp-controller="Home" asp-action="Index">TRANG CHỦ</a>
+                        </li>
+                        <li>
+                            <img class="icons" src="~/images/Icons/Category.png" alt="">
+                            <a asp-area="" asp-controller="BaiHats" asp-action="ViewTheLoai">THỂ LOẠI</a>
+                        </li>
+                        <li>
+                            <img class="icons" src="~/images/Icons/artist.png" alt="">
+                            <a asp-area="" asp-controller="NgheSis" asp-action="Index">NGHỆ SĨ</a>
+                        </li>
+                        @if (SignInManager.IsSignedIn(User))
+                        {
+
+                            <li>
+                                <img class="icons" src="~/images/Icons/Playlists.png" alt="">
+                                <a asp-area="" asp-controller="DanhSachPhats" asp-action="Index">DANH SÁCH PHÁT</a>
+                            </li>
+                            <li>
+                                <img class="icons" src="~/images/Icons/favorite.png" alt="">
+                                <a asp-area="" asp-controller="BaiHats" asp-action="YeuThich">ƯA THÍCH</a>
+                            </li>
+                        }
+                       
+                    </ul>
+                }
+                else
+                {
+                    <ul>
+                        <li>
+                            <img class="icons" src="~/images/Icons/Home.png" alt="">
+                            <a asp-area="Admin" asp-controller="Home" asp-action="Index">TRANG CHỦ</a>
+                        </li>
+                        <li>
+                            <img class="icons" src="~/images/Icons/Category.png" alt="">
+                            <a asp-area="Admin" asp-controller="BaiHats" asp-action="ViewTheLoai">THỂ LOẠI</a>
+                        </li>
+                        <li>
+                            <img class="icons" src="~/images/Icons/artist.png" alt="">
+                            <a asp-area="Admin" asp-controller="NgheSis" asp-action="Index">NGHỆ SĨ</a>
+                        </li>
+                        @if (SignInManager.IsSignedIn(User))
+                        {
+
+                            <li>
+                                <img class="icons" src="~/images/Icons/Playlists.png" alt="">
+                                <a asp-area="Admin" asp-controller="DanhSachPhats" asp-action="Index">ALBUMS</a>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+            @if (SignInManager.IsSignedIn(User))
+            {
+                <div class="menus">
+                    <p>General</p>
+                    <ul>
+                        <li>
+                            <img src="~/images/Icons/signin.png" alt="">
+                            <a href="/Identity/Account/Manage">Account</a>
+                        </li>
+                        <li>
+                            <img src="~/images/Icons/logout.png" alt="">
+                            <form id="logoutForm" class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+							    <button style="font-size:24px" id="logout" type="submit" class="">Logout</button>
+                            </form>
+						</li>
+                    </ul>
+                </div>
+            }
+        </aside>
+
+        <main>
+            <header>
+                <div class="nav-links">
+                    @if (!isAdmin)
+                    {
+                        <a asp-action="Index" asp-controller="BaiHats" asp-area="">MUSIC</a>
+                    }
+                    else
+                    {
+                        <a asp-action="Index" asp-controller="BaiHats" asp-area="Admin">MUSIC</a>
+                    }
+                </div>
+                <div class="search">
+                    @* <form action="/BaiHats/SearchBaiHats" method="get">
+                            <div class="input-group">
+                            <input type="text" class="form-controll" name="query" placeholder="Tìm bài hát" required />
+                        </div>
+                        <div class="input-group">
+                            <input id="search-input" class="form-control" type="text" name="query" autocomplete="off" placeholder="Tìm sản phẩm" required />
+                            <div id="search-results" class="dropdown-content">
+                            </div>
+                            <button class="buttons" type="submit">Tìm kiếm</button>
+                        </div>
+                    </form> *@
+                    @if (!isAdmin)
+                    {
+                        <form id="search-form" action="/BaiHats/SearchBaiHats" method="get" class="dropdown w-100">
+                            <div class="input-group">
+                                <input id="search-input" class="form-control" type="text" name="query" autocomplete="off" placeholder="Tìm sản phẩm" required />
+                                <div id="search-results" class="dropdown-content">
+                                </div>
+                            </div>
+                        </form>
+                    }
+                    else
+                    {
+                        <form id="search-form" action="/Admin/BaiHats/SearchBaiHats" method="get" class="dropdown w-100">
+                            <div class="input-group">
+                                <input id="search-input" class="form-control" type="text" name="query" autocomplete="off" placeholder="Tìm sản phẩm" required />
+                                <div id="search-results" class="dropdown-content">
+                                </div>
+                            </div>
+                        </form>
+                    }
+                </div>
+            </header>
+            @RenderBody()
+        </main>
+        <div class="right-section">
+            <div class="profile">
+                <partial name="/Views/Shared/_LoginPartial.cshtml" />
+            </div>
+            <div class="player">
+                <!-- Dashboard -->
+                <div class="dashboard">
+                    <!-- CD -->
+                    <div class="cd">
+                        <img src="@randomBaiHat.imageFile" alt="">
+
+                    </div>
+                    <div class="line">
+                        <h3>@randomBaiHat.Name</h3>
+                        <p>
+                            @{
+                                List<BaiHat_NgheSi> baiHat_NgheSi = _context.BaiHat_NgheSi.Where(p => p.BaiHatID == randomBaiHat.Id).ToList();
+                            }
+                            @foreach (BaiHat_NgheSi item in baiHat_NgheSi)
+                            {
+                                NgheSi ngheSi = _context.NgheSi.Find(item.NgheSiID);
+                                <a class="text-black" asp-area="Admin" asp-controller="NgheSis" asp-action="Details" asp-route-id="@ngheSi.Id">@ngheSi.Name</a>
+                                if (baiHat_NgheSi.Count() != 1)
+                                {
+                                    var lastItem = baiHat_NgheSi[baiHat_NgheSi.Count - 1];
+                                    if (item.NgheSiID != lastItem.NgheSiID)
+                                    {
+                                        <a class="text-black">, </a>
+                                    }
+                                }
+                            }.
+                        </p>
+                    </div>
+                    <!-- Control -->
+                    <div class="control">
+                        <div class="btn btn-repeat">
+                            <i class="fas fa-redo"></i>
+                        </div>
+                        <div class="btn btn-prev">
+                            <i class="fas fa-step-backward"></i>
+                        </div>
+                        <div class="btn btn-toggle-play">
+                            <i class="fas fa-pause icon-pause"></i>
+                            <i class="fas fa-play icon-play"></i>
+                        </div>
+                        <div class="btn btn-next">
+                            <i class="fas fa-step-forward"></i>
+                        </div>
+                        <div class="btn btn-random">
+                            <i class="fas fa-random"></i>
+                        </div>
+                    </div>
+                    <input id="progress" class="progress" type="range" value="0" step="1" min="0" max="100">
+                    <audio id="audio" src="@randomBaiHat.FilePath"></audio>
+                </div>
+                <div class="playlist">
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+
+    <script src="https://unpkg.com/@@dotlottie/player-component@latest/dist/dotlottie-player.mjs" type="module"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+    <script>
+        $(document).ready(function () {
+            $("#search-input").on("keyup", function () {
+                var query = $(this).val();
+                if (query !== '') {
+                    $.ajax({
+                        url: "/BaiHats/SearchSuggestions",
+                        type: "GET",
+                        data: { query: query },
+                        dataType: "json",
+                        success: function (data) {
+                            $("#search-results").empty();
+                            $.each(data, function (index, suggestion) {
+                                $("#search-results").append("<div class='suggestion'>" + suggestion + "</div>");
+                            });
+                            $(".dropdown-content").show(); 
+                        },
+                        error: function (xhr, status, error) {
+                            console.log("Lỗi:", error);
+                        }
+                    });
+                } else {
+                    $("#search-results").empty();
+                    $(".dropdown-content").hide();
+                }
+            });
+            $(document).on("click", ".suggestion", function () {
+                var selectedSuggestion = $(this).text();
+                $("#search-input").val(selectedSuggestion); 
+                $("#search-results").empty(); 
+                $(".dropdown-content").hide(); 
+            });
+
+            $(document).on("click", function (event) {
+                if (!$(event.target).closest('.dropdown').length) {
+                    $(".dropdown-content").hide();
+                }
+            });
+        });
+    </script>
+    <script>
+        $(document).ready(function () {
+            const player = $('.player');
+            const playBtn = $('.btn-toggle-play');
+            const audio = $('#audio');
+            const progress = $('#progress');
+            const anotherPlay = $('.playNow');
+
+            $(window).on('beforeunload', function () {
+                const savedState = localStorage.getItem('isPlaying');
+                localStorage.setItem('isPlaying', savedState === 'true');
+                app.loadState();
+            });
+
+            const app = {
+                isPlaying: false,
+                checkSongPath: function (newSongPath) {
+                    const oldSongPath = localStorage.getItem('currentSongPath');
+                    if (oldSongPath !== null && oldSongPath !== newSongPath) {
+                        localStorage.setItem('currentSongPath', newSongPath);
+                        localStorage.setItem('currentTime', 0);
+                        localStorage.setItem('isPlaying', false);
+                        this.loadState();
+                    } else {
+                        localStorage.setItem('currentSongPath', newSongPath);
+                    }
+                },
+
+                loadState: function () {
+                    const savedState = localStorage.getItem('isPlaying');
+                    const savedTime = localStorage.getItem('currentTime');
+                    if (savedState !== null) {
+                        this.isPlaying = savedState === 'true';
+                        if (this.isPlaying) {
+                            audio.trigger('play');
+                            player.addClass('playing');
+                            audio[0].currentTime = savedTime;
+                        } else {
+                            audio.trigger('pause');
+                            player.removeClass('playing');
+                        }
+                    }
+                },
+
+                handleEvents: function () {
+                    const _this = this;
+                    playBtn.on('click', function () {
+                        _this.isPlaying = !_this.isPlaying;
+                        if (_this.isPlaying) {
+                            audio.trigger('play');
+                            player.addClass('playing');
+                        } else {
+                            audio.trigger('pause');
+                            player.removeClass('playing');
+                        }
+                        localStorage.setItem('isPlaying', _this.isPlaying);
+                    });
+
+                    audio.on('timeupdate', function () {
+                        if (audio[0].duration) {
+                            const progressPercent = Math.floor(audio[0].currentTime / audio[0].duration * 100);
+                            localStorage.setItem('currentTime', audio[0].currentTime);
+                            progress.val(progressPercent);
+                            if (audio[0].currentTime >= audio[0].duration) {
+                                player.removeClass('playing');
+                                _this.isPlaying = false;
+                                localStorage.setItem('isPlaying', _this.isPlaying);
+                            }
+                        }
+                    });
+
+                    progress.on('change', function (e) {
+                        const seekTime = audio[0].duration / 100 * e.target.value;
+                        audio[0].currentTime = seekTime;
+                        localStorage.setItem('currentTime', audio[0].currentTime);
+                    });
+                },
+
+                start: function () {
+                    const newSongPath = '@randomBaiHat.FilePath';
+                    this.checkSongPath(newSongPath);
+                    this.loadState();
+                    this.handleEvents();
+                },
+            };
+
+            app.start();
+        });
+    </script>
+</body>
+</html>

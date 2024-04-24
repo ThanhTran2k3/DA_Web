@@ -1,0 +1,20 @@
+﻿@model IEnumerable<DA_Web.Models.TL_Nhac>
+@{
+    ViewData["Title"] = "ViewTheLoai";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2 class="h2">Thể loại</h2>
+
+<div class="viewcate">
+    @foreach (var item in Model)
+    {
+        <a asp-action="DetailsTheLoai" asp-route-id="@item.ID">
+            <div class="item">
+                <img src="@item.imageFile">
+                <p>@Html.DisplayFor(modelItem => item.Name)</p>
+            </div>
+        </a>
+    }
+</div>
+<div class="playNow"></div>

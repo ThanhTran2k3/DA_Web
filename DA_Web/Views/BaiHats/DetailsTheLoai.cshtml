@@ -1,0 +1,100 @@
+﻿@model List<BaiHat>
+@inject Web_Context _context;
+@{
+    ViewData["Title"] = "Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    TL_Nhac tL_Nhac = (TL_Nhac)ViewBag.TLNhac;
+}
+<style>
+    a {
+        color: black;
+        text-decoration: none;
+    }
+
+    a:hover {
+        color: black;
+        text-decoration: none;
+    }
+
+    .pagination-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+    }
+</style>
+
+
+
+<div style="display:block">
+    <img src="@tL_Nhac.imageFile" style="width: 180px; height: 140px " />
+</div>
+<h1 style="text-align:center">@tL_Nhac.Name.ToUpper()</h1>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model[0].Name)
+
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model[0].Time)
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    <div class="playNow">
+                        <img src="@item.imageFile" style="height: 40px; width: 40px" />
+                    </div>
+                </td>
+                <td>
+                    <div class="d-flex flex-column">
+                        <a class="fx-11" asp-action="Details" asp-route-id="@item.Id">@Html.DisplayFor(modelItem => item.Name)</a>
+
+                        @{
+                            List<BaiHat_NgheSi> baiHat_NgheSi = _context.BaiHat_NgheSi.Where(p => p.BaiHatID == item.Id).ToList();
+                        }
+                        @foreach (BaiHat_NgheSi item1 in baiHat_NgheSi)
+                        {
+                            NgheSi ngheSi = _context.NgheSi.Find(item1.NgheSiID);
+                            <a class="fx-12" asp-controller="NgheSis" asp-action="Details" asp-route-id="@ngheSi.Id">@ngheSi.Name</a>
+                            if (baiHat_NgheSi.Count() != 1)
+                            {
+                                var lastItem = baiHat_NgheSi[baiHat_NgheSi.Count - 1];
+                                if (item1.NgheSiID != lastItem.NgheSiID)
+                                {
+                                    <a>, </a>
+                                }
+                            }
+                        }
+                    </div>
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Time)
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+<div>
+    <div class="pagination-container">
+        <nav aria-label="Page navigation">
+            <ul class="pagination">
+                @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                {
+                    <li class="page-item @(i == ViewBag.PageNumber  ? "active" : "")">
+
+                        <a class="page-link" href="@Url.Action("DetailsTheLoai", new {id= tL_Nhac.ID, pageNumber = i })">@i</a>
+
+                    </li>
+                }
+            </ul>
+        </nav>
+    </div>
+    <div class="playNow"></div>

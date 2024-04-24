@@ -1,0 +1,102 @@
+﻿@model DA_Web.Models.BaiHat
+
+@{
+    ViewData["Title"] = "Edit";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>Edit</h1>
+
+<h4>BaiHat</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Edit" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+            <div class="form-group">
+                <label asp-for="Name" class="control-label"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label for="imageFile">Chọn tệp ảnh</label>
+                <input type="file" id="imageFile" name="imageFile" accept="image/*" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label for="file">Chọn tệp lrc</label>
+                <input type="file" id="lrcFile" name="lrcFile" accept=".lrc,text/plain" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label for="mp3File">Chọn tệp MP3</label>
+                <input type="file" id="mp3File" name="mp3File" accept=".mp3,audio/mp3" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label asp-for="TL_NhacID" class="control-label">Thể loại</label>
+                <select asp-for="TL_NhacID" class="form-control" asp-items="ViewBag.TL_NhacID"></select>
+            </div>
+            <div class="form-group">
+                <label for="artistSelect">Chọn nghệ sĩ:</label>
+                <select id="artistSelect" class="form-control" asp-items="ViewBag.NgheSyID"></select>
+                <button id="addArtistButton" type="button" class="btn btn-primary mt-2">Thêm</button>
+            </div>
+
+            <div class="form-group">
+                <label for="selectedArtists">Nghệ sĩ đã chọn:</label>
+                <select id="selectedArtists" name="selectedArtists" class="form-control"></select>
+            </div>
+
+            <input type="hidden" name="selectedNgheSiList" id="selectedNgheSiList" />
+
+
+            <div class="form-group">
+                <input type="submit" value="Save" id="submit" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const artistSelect = document.getElementById('artistSelect');
+            const addArtistButton = document.getElementById('addArtistButton');
+            const selectedArtists = document.getElementById('selectedArtists');
+            addArtistButton.addEventListener('click', function (event) {
+                event.preventDefault();
+                const selectedOption = artistSelect.options[artistSelect.selectedIndex];
+                const existingOption = selectedArtists.querySelector(`option[value="${selectedOption.value}"]`);
+                if (!existingOption && selectedOption.value !== "") {
+                    const newOption = document.createElement('option');
+                    newOption.value = selectedOption.value;
+                    newOption.textContent = selectedOption.textContent;
+                    selectedArtists.appendChild(newOption);
+                }
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const submit = document.getElementById('submit');
+            const selectedArtists = document.getElementById('selectedArtists');
+            const hiddenInput = document.getElementById('selectedNgheSiList');
+
+            if (submit && selectedArtists && hiddenInput) {
+                submit.addEventListener('click', function (event) {
+                    const selectedValues = Array.from(selectedArtists.options)
+                        .map(option => option.value);
+
+                    hiddenInput.value = selectedValues.join(',');
+                });
+            }
+        });
+
+    </script>
+}
+
+
+
